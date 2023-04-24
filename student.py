@@ -42,6 +42,32 @@ docsearch = Chroma.from_documents(texts, embeddings)
 
 qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=docsearch.as_retriever())
 
+def qa_from_filenames(filenames):
+    base_loader = TextLoader('base.txt')
+    base_documents = base_loader.load()
+    default_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = default_splitter.split_documents(base_documents)
+
+    for source in filenames:
+        # source is a file name
+        suffix = source.split('.')[-1]
+        if suffix == 'txt' or suffix == 'org':
+            loader = TextLoader(source)
+        elif suffix == 'pdf':
+            loader = UnstructuredPDFLoader(source)
+
+        documents = loader.load()
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        texts.extend(text_splitter.split_documents(documents))
+
+    embeddings = OpenAIEmbeddings()
+
+    docsearch = Chroma.from_documents(texts, embeddings)
+
+    qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=docsearch.as_retriever())
+    return qa
+
+nextStepsQA = qa_from_filenames(['./next_steps.org'])
 
 def search_notes(query):
     return qa.run(query)
@@ -62,6 +88,11 @@ class BetaCalculatorInputSchema(BaseModel):
     n: int = Field(..., example=100)
     s: float = Field(..., example=0.1)
 tools = [
+    Tool(
+        name="next_steps",
+        description="If there is something you need to do, this tool will tell you what to do next.",
+        func=qa.run
+    ),
     Tool(
         name="stats_qa",
         description="Find extra information about statistical concepts.",
@@ -87,14 +118,34 @@ Questions || goals:
 {need_to_know}
 ---
 When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x.
-Here are approaches you should take to solve different kinds of problems.
-Hypothesis Testing:
-    1. State the null and alternative hypothesis
-    2. Choose a significance level (alpha)
-    3. Calculate the test statistic
-    4. Determine the critical value
-    5. Compare test statistic with critical value
-    6. State the conclusion
+Follow the following:
+# start
+# :State the null and alternative hypotheses;
+# :Identify the test statistic;
+# if (Population standard deviation is known?) then (yes)
+#   if (Sample size is large?) then (yes)
+#     :Use the z-test;
+#   else (no)
+#     :Use the t-test;
+#   endif
+# else (no)
+#   :Use the t-test;
+# endif
+# :Find the p-value;
+# if (p <= alpha) then (yes)
+#   :Reject H0;
+# else (no)
+#   :Fail to reject H0;
+# endif
+# if (p <= alpha) then (yes)
+#   :The result is statistically significant;
+# else (no)
+#   :The result is not statistically significant;
+# endif
+# stop
+
+For choosing the right test, you can use the following:
+# start
 '''
 
 import flask
