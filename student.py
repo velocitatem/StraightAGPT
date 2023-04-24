@@ -42,11 +42,6 @@ docsearch = Chroma.from_documents(texts, embeddings)
 
 qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=docsearch.as_retriever())
 
-stats_tool = Tool(
-    name="stats",
-    description="Search notes on statistics and how to use python to calculate them. You can also ask what to do when solving some problem.",
-    func=qa.run
-)
 
 def search_notes(query):
     return qa.run(query)
@@ -55,27 +50,51 @@ from langchain.tools import DuckDuckGoSearchTool
 ddg = DuckDuckGoSearchTool()
 from langchain.utilities import PythonREPL
 repl = PythonREPL()
-tools = []
-tools.append(stats_tool)
-#tools.append(ddg)
-python_calc_tool = Tool(
-    name="python",
-    description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
-    func=repl.run
-)
-tools.append(python_calc_tool)
+
+from stats import list_tools
+
+
+from pydantic import BaseModel, Field
+
+class BetaCalculatorInputSchema(BaseModel):
+    x_bar: float = Field(..., example=0.5)
+    mu_0: float = Field(..., example=0.5)
+    n: int = Field(..., example=100)
+    s: float = Field(..., example=0.1)
+tools = [
+    Tool(
+        name="stats_qa",
+        description="Find extra information about statistical concepts.",
+        func=qa.run
+    ),
+    Tool(
+        name="python",
+        description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
+        func=repl.run
+    ),
+    *list_tools()
+]
 
 
 agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, return_intermediate_steps=True)
 
 template = '''
-Context:
+You are a data analyst. It is your job to solve problems and answer questions.
+Problem to solve:
 {problem}
 ---
-Given the above problem, solve it and select one of the following options. Return only the number of the correct option.
+Questions || goals:
 {need_to_know}
 ---
-When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x. You must only respond with the number of the correct option, no other text is allowed.
+When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x.
+Here are approaches you should take to solve different kinds of problems.
+Hypothesis Testing:
+    1. State the null and alternative hypothesis
+    2. Choose a significance level (alpha)
+    3. Calculate the test statistic
+    4. Determine the critical value
+    5. Compare test statistic with critical value
+    6. State the conclusion
 '''
 
 import flask

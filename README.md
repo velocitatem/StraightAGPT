@@ -24,3 +24,14 @@ This is how the cli works:
 2. Create a new branch
 3. Make your changes
 4. Create a pull request
+
+# Operations for Data Analysis
+Here is how the model~user interaction should go:
+
+1. User provides a problem
+2. Model identifies the hypotheses
+3. Based on the hypotheses and problem, identifies the test statistic
+4. Uses tools to compute test-statistic and p-value
+5. Interprets the results in context of the problem and hypotheses
+
+We want the model to: Solve complex problems, provide simple calculations
