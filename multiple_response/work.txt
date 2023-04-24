@@ -1,0 +1,1 @@
+ER wait times at a hospital were beinganalyzed. The previous year’s average was 128 minutes. Suppose that this year’saverage wait time is 135 minutes.
