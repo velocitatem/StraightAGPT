@@ -1,4 +1,6 @@
 {
-    "source": "/home/velocitatem/Downloads/Hypothesis Testing One Sample-3.pdf",
+    "sources": [
+        "/mnt/s/Documents/Collage/university-study-notes/content/20230413174833-fundamentals_of_data_analysis_cheat_sheet.org"
+               ],
     "openai_api_key": "YOUR_API_KEY"
 }
