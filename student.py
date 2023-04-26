@@ -24,6 +24,13 @@ import json
 with open('config.json') as f:
     config = json.load(f)
 
+import sys
+mode = sys.argv[1]
+if mode in config['modes'].keys():
+    config = config['modes'][mode]
+else:
+    raise ValueError(f'Unknown mode {mode}')
+
 for source in config['sources']:
     # source is a file name
     suffix = source.split('.')[-1]
@@ -80,19 +87,7 @@ repl = PythonREPL()
 from stats import list_tools
 
 
-from pydantic import BaseModel, Field
-
-class BetaCalculatorInputSchema(BaseModel):
-    x_bar: float = Field(..., example=0.5)
-    mu_0: float = Field(..., example=0.5)
-    n: int = Field(..., example=100)
-    s: float = Field(..., example=0.1)
 tools = [
-    Tool(
-        name="next_steps",
-        description="If there is something you need to do, this tool will tell you what to do next.",
-        func=qa.run
-    ),
     Tool(
         name="stats_qa",
         description="Find extra information about statistical concepts.",
@@ -103,50 +98,14 @@ tools = [
         description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
         func=repl.run
     ),
-    *list_tools()
+    *list_tools() # extracts all the tools from the stats.py file and adds them to the list
 ]
 
 
 agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, return_intermediate_steps=True)
 
-template = '''
-You are a data analyst. It is your job to solve problems and answer questions.
-Problem to solve:
-{problem}
----
-Questions || goals:
-{need_to_know}
----
-When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x.
-Follow the following:
-# start
-# :State the null and alternative hypotheses;
-# :Identify the test statistic;
-# if (Population standard deviation is known?) then (yes)
-#   if (Sample size is large?) then (yes)
-#     :Use the z-test;
-#   else (no)
-#     :Use the t-test;
-#   endif
-# else (no)
-#   :Use the t-test;
-# endif
-# :Find the p-value;
-# if (p <= alpha) then (yes)
-#   :Reject H0;
-# else (no)
-#   :Fail to reject H0;
-# endif
-# if (p <= alpha) then (yes)
-#   :The result is statistically significant;
-# else (no)
-#   :The result is not statistically significant;
-# endif
-# stop
-
-For choosing the right test, you can use the following:
-# start
-'''
+with open(f'{mode}.prompt') as f:
+    template = f.read()
 
 import flask
 from flask import request, jsonify
