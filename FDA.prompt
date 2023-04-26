@@ -8,8 +8,11 @@ Questions || goals:
 When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x.
 Follow the following:
 # start
-# :State the null and alternative hypotheses;
+# :State the null and alternative hypotheses - if unknown;
+# :If given a dataset, understand the dataset;
+# :What kind of data do we have? Means? Proportions? Variance?;
 # :Identify the test statistic;
+# :Identify the data type: mean, proportion;
 # if (Population standard deviation is known?) then (yes)
 #   if (Sample size is large?) then (yes)
 #     :Use the z-test;

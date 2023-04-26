@@ -47,7 +47,9 @@ embeddings = OpenAIEmbeddings()
 
 docsearch = Chroma.from_documents(texts, embeddings)
 
-qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=docsearch.as_retriever())
+qa = RetrievalQA.from_chain_type(llm=OpenAI(),
+                                 chain_type="stuff",
+                                 retriever=docsearch.as_retriever())
 
 def qa_from_filenames(filenames):
     base_loader = TextLoader('base.txt')
@@ -58,10 +60,12 @@ def qa_from_filenames(filenames):
     for source in filenames:
         # source is a file name
         suffix = source.split('.')[-1]
-        if suffix == 'txt' or suffix == 'org':
+        if suffix in ['txt', 'org', 'md']:
             loader = TextLoader(source)
         elif suffix == 'pdf':
             loader = UnstructuredPDFLoader(source)
+        else:
+            raise ValueError(f'Unknown file type {suffix}')
 
         documents = loader.load()
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
@@ -69,9 +73,12 @@ def qa_from_filenames(filenames):
 
     embeddings = OpenAIEmbeddings()
 
-    docsearch = Chroma.from_documents(texts, embeddings)
+    docsearch = Chroma.from_documents(texts, embeddings, persist_directory='db')
 
-    qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=docsearch.as_retriever())
+
+    qa = RetrievalQA.from_chain_type(llm=OpenAI(),
+                                     chain_type="stuff",
+                                     retriever=docsearch.as_retriever())
     return qa
 
 nextStepsQA = qa_from_filenames(['./next_steps.org'])
@@ -121,7 +128,8 @@ def api_id():
     goals = request.json['goals']
     inall = template.format(problem=context, need_to_know=goals)
     response = agent({inall})
-    return jsonify({'response': response['output'], 'intermediate_steps': response['intermediate_steps']})
+    res = response['response']
+    return jsonify({'response': res})
 
 # add route for the search notes method
 @app.route('/api/v1/search', methods=['POST'])
