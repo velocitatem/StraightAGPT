@@ -27,6 +27,7 @@ stop
 
 # If doing a confidence interval:
 start
+:If you are given a dataset, load it;
 :Select the appropriate interval statistic using a tool;
 :Compute the interval using a tool;
 :Intepret the interval;

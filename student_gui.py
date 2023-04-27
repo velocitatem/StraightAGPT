@@ -12,7 +12,10 @@ def get_answer(context, goals):
     myobj = {'context': context, 'goals': goals}
     x = requests.post(url, json = myobj)
     x_json = x.json()
-    return (x_json['response'], x_json['intermediate_steps'])
+    try:
+        return (x_json['response'], x_json['intermediate_steps'])
+    except:
+        return (x_json['response'], ["Please check the console"])
 
 
 # @app.route('/api/v1/search', methods=['post'])

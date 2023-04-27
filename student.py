@@ -5,7 +5,7 @@ from langchain.llms import OpenAI
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 
-llm = OpenAI(temperature=0.7)
+llm = OpenAI(temperature=0.3)
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
