@@ -146,13 +146,14 @@ def required_sample_size(comma_separated_list):
 
 
 def list_tools():
-    return [calculate_beta,
-            z_score, # z testing
-            tail_specific_z_value,
-            t_score, # t testing
-            tail_specific_t_value,
-            proportions_z_score, # proportions testing
-            tail_specific_proportions_z_value,
-            test_statistic_selection,
-            load_dataset
+    return [
+        calculate_beta,
+        z_score, # z testing
+        tail_specific_z_value,
+        t_score, # t testing
+        tail_specific_t_value,
+        proportions_z_score, # proportions testing
+        tail_specific_proportions_z_value,
+        test_statistic_selection,
+        load_dataset
             ]

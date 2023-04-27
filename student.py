@@ -91,7 +91,7 @@ ddg = DuckDuckGoSearchTool()
 from langchain.utilities import PythonREPL
 repl = PythonREPL()
 
-from stats import list_tools
+from toolkit import list_tools
 
 
 tools = [
