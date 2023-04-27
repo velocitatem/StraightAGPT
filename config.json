@@ -4,6 +4,12 @@
             "sources": [
                 "/mnt/s/Documents/Collage/university-study-notes/content/20230413174833-fundamentals_of_data_analysis_cheat_sheet.org"
             ]
+        },
+        "PHYSICS": {
+            "sources": [
+                "/mnt/s/Documents/Collage/First Year/Second Semester/Physics/Module 4/7. Semiconductors (I)/Semiconductors.html",
+                "/mnt/s/Documents/Collage/First Year/Second Semester/Physics/Module 4/8. Semiconductors (II)/Semiconductors_2.html"
+            ]
         }
     },
     "openai_api_key": "YOUR_API_KEY"

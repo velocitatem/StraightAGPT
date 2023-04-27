@@ -5,6 +5,7 @@ import numpy as np
 from langchain.agents import tool
 from langchain.llms import OpenAI
 import pandas as pd
+import sys
 
 
 @tool
@@ -40,6 +41,7 @@ def tail_specific_z_value(comma_separated_list):
         return 2 * (1 - stats.norm.cdf(abs(z)))
     else:
         return "Error: tail must be left, right or two"
+
 
 @tool
 def t_score(comma_separated_list):
@@ -118,6 +120,15 @@ def tail_specific_proportions_z_value(comma_separated_list):
         return "Error: tail must be left, right or two"
 
 @tool
+def proportions_conditions_check(comma_separated_list):
+    '''
+    Checks the conditions for proportions. Params: n,p0. Example input is: 100,0.5
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    n, p0 = map(float, comma_separated_list)
+    return n * p0 >= 10 and n * (1 - p0) >= 10
+
+@tool
 def chi_squared_metric(comma_separated_list):
     '''
     Calculates the chi-squared metric. Params: n,standard_deviation_sample,standard_deviation_null. Example input is: 100,1,0.7
@@ -126,8 +137,6 @@ def chi_squared_metric(comma_separated_list):
     n, standard_deviation, standard_deviation_0 = map(float, comma_separated_list)
     # ¦((Q-1)*Vd**2)/(Vd0**2)
     chi_squared = ((n-1)*(standard_deviation**2))/(standard_deviation_0**2)
-
-
     return chi_squared
 
 @tool
@@ -256,6 +265,38 @@ def select_confidence_interval(context):
     response = llm(prompt.format(context=context))
     return response
 
+@tool
+def two_sample_t_score(comma_separated_list):
+    '''
+    Calculates the two sample t score. Params: sample_mean_1,sample_mean_2,standard_deviation_1,standard_deviation_2,n_1,n_2. Example input is: 0,1,1,1,100,100
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_mean_1, sample_mean_2, standard_deviation_1, standard_deviation_2, n_1, n_2 = map(float, comma_separated_list)
+    return (sample_mean_1 - sample_mean_2) / np.sqrt(standard_deviation_1 ** 2 / n_1 + standard_deviation_2 ** 2 / n_2)
+
+@tool
+def tail_specific_two_sample_t_value(comma_separated_list):
+    '''
+    Calculates the tail specific two sample t-test p-value. Params: t_score,n_1,n_2,alpha,side. Example input is: 1.5,20,51,0.05,left/right/two
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    t_score, n_1, n_2, alpha, side = map(str, comma_separated_list)
+    side = side.lower().strip()
+    t_score, n_1, n_2, alpha = map(float, [t_score, n_1, n_2, alpha])
+    if side == 'left':
+        return stats.t.cdf(t_score, n_1 + n_2 - 2)
+    elif side == 'right':
+        return 1 - stats.t.cdf(t_score, n_1 + n_2 - 2)
+    elif side == 'two':
+        return 2 * (1 - stats.t.cdf(t_score, n_1 + n_2 - 2))
+    else:
+        raise ValueError('side must be left, right or two')
+
+
+
+
+
+
 
 
 def list_tools():
@@ -267,6 +308,7 @@ def list_tools():
         tail_specific_t_value,
         proportions_z_score, # proportions testing
         tail_specific_proportions_z_value,
+        proportions_conditions_check,
         chi_squared_metric, # chi-squared testing
         tail_specific_chi_squared_value,
         test_statistic_selection,
@@ -276,13 +318,24 @@ def list_tools():
         proportions_z_confidence_interval,
         chi_squared_interval,
         select_confidence_interval,
+        two_sample_t_score, # two sample t testing
+        tail_specific_two_sample_t_value,
         load_dataset
             ]
 
-
+import argparse
+def list_tools_print():
+    for tool in list_tools():
+        print(f"\n\n{tool.name}")
+        print(f"\t{tool.description}")
 if __name__ == '__main__':
-    import sys
-    method_to_run = sys.argv[1]
-    method = [x for x in list_tools() if x.name == method_to_run][0] # get the method
-    args = sys.argv[2:]
-    print(method(*args))
+    parser = argparse.ArgumentParser(description='Run a statistical tool')
+    parser.add_argument('--tool', type=str, help='the name of the tool to run')
+    parser.add_argument('--args', type=str, help='comma separated list of arguments to pass to the tool')
+    parser.add_argument('--list', action='store_true', help='list all available tools')
+    args = parser.parse_args()
+    if args.list:
+        list_tools_print()
+    else:
+        tool = next(filter(lambda x: x.name == args.tool, list_tools()))
+        print(tool(args.args))

@@ -31,26 +31,13 @@ if mode in config['modes'].keys():
 else:
     raise ValueError(f'Unknown mode {mode}')
 
-for source in config['sources']:
-    # source is a file name
-    suffix = source.split('.')[-1]
-    if suffix == 'txt' or suffix == 'org':
-        loader = TextLoader(source)
-    elif suffix == 'pdf':
-        loader = UnstructuredPDFLoader(source)
-
-    documents = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts.extend(text_splitter.split_documents(documents))
-
-embeddings = OpenAIEmbeddings()
 
 # docsearch = Chroma.from_documents(texts, embeddings)
 
 # qa = RetrievalQA.from_chain_type(llm=OpenAI(),
 #                                  chain_type="stuff",
 #                                  retriever=docsearch.as_retriever())
-
+from langchain.document_loaders import UnstructuredHTMLLoader
 def qa_from_filenames(filenames):
     base_loader = TextLoader('base.txt')
     base_documents = base_loader.load()
@@ -64,6 +51,8 @@ def qa_from_filenames(filenames):
             loader = TextLoader(source)
         elif suffix == 'pdf':
             loader = UnstructuredPDFLoader(source)
+        elif suffix == 'html':
+            loader = UnstructuredHTMLLoader(source)
         else:
             raise ValueError(f'Unknown file type {suffix}')
 
@@ -89,17 +78,33 @@ ddg = DuckDuckGoSearchTool()
 from langchain.utilities import PythonREPL
 repl = PythonREPL()
 
-toolkit = __import__(mode)
+qa = qa_from_filenames(config['sources'])
+
+def search_notes(query):
+    response = qa.run(query)
+    return response
+
+# check if mode.py exists
+import os.path
+toolkit = None
+if os.path.isfile(f'{mode}.py'):
+    toolkit = __import__(mode)
 
 
 tools = [
+    Tool(
+        name="search",
+        description="Search for something in provided notes",
+        func=qa.run
+    ),
     Tool(
         name="python",
         description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
         func=repl.run
     ),
-    *toolkit.list_tools() # extracts all the tools from the stats.py file and adds them to the list
 ]
+if toolkit:
+    tools.extend(toolkit.list_tools())
 
 
 agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, return_intermediate_steps=True)
@@ -133,7 +138,7 @@ def api_id():
 def api_search():
     query = request.json['query']
     response = search_notes(query)
-    print(response)
+    response = {'response': response}
     return jsonify(response)
 
 
