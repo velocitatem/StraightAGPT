@@ -5,33 +5,22 @@ Problem to solve:
 Questions || goals:
 {need_to_know}
 ---
-When using the Python tool, always print all the variables you want to see. For example, if you want to see the value of x, you should print(x) instead of just x.
 Follow the following:
-# start
-# :State the null and alternative hypotheses - if unknown;
-# :If given a dataset, understand the dataset;
-# :What kind of data do we have? Means? Proportions? Variance?;
-# :Identify the test statistic;
-# :Identify the data type: mean, proportion;
-# if (Population standard deviation is known?) then (yes)
-#   if (Sample size is large?) then (yes)
-#     :Use the z-test;
-#   else (no)
-#     :Use the t-test;
-#   endif
-# else (no)
-#   :Use the t-test;
-# endif
-# :Find the p-value;
-# :Determine the tail region left/right/two;
-# if (p <= alpha) then (yes)
-#   :Reject H0;
-# else (no)
-#   :Fail to reject H0;
-# endif
-# if (p <= alpha) then (yes)
-#   :The result is statistically significant;
-# else (no)
-#   :The result is not statistically significant;
-# endif
-# stop
+start
+:State the null and alternative hypotheses - if unknown;
+:If given a dataset, understand the dataset;
+:Identify what the sample is: mean/proportion/variance;
+:Use a tool to find the correct statistic;
+:Find the p-value;
+:Determine the tail region left/right/two;
+if (p <= alpha) then (yes)
+  :Reject H0;
+else (no)
+  :Fail to reject H0;
+endif
+if (p <= alpha) then (yes)
+  :The result is statistically significant;
+else (no)
+  :The result is not statistically significant;
+endif
+stop

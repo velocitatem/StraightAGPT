@@ -73,7 +73,7 @@ def tail_specific_t_value(comma_separated_list):
 @tool
 def load_dataset(comma_separated_list):
     '''
-    For a lot of problems you will need to understand some dataset. This tool will give you a summary of the dataset. Params: path/link,format. Example input is: https://raw.githubusercontent.com/llimllib/bostonmarathon/master/results/2014/results.csv,csv
+    You must have a dataset. For a lot of problems you will need to understand some dataset. This tool will give you a summary of the dataset. Params: path/link,format. Example input is: https://raw.githubusercontent.com/llimllib/bostonmarathon/master/results/2014/results.csv,csv
     '''
     comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
     path, form = map(str, comma_separated_list)
@@ -117,21 +117,63 @@ def tail_specific_proportions_z_value(comma_separated_list):
     else:
         return "Error: tail must be left, right or two"
 
+@tool
+def chi_squared_metric(comma_separated_list):
+    '''
+    Calculates the chi-squared metric. Params: n,standard_deviation_sample,standard_deviation_null. Example input is: 100,1,0.7
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    n, standard_deviation, standard_deviation_0 = map(float, comma_separated_list)
+    # ¦((Q-1)*Vd**2)/(Vd0**2)
+    chi_squared = ((n-1)*(standard_deviation**2))/(standard_deviation_0**2)
+
+
+    return chi_squared
+
+@tool
+def tail_specific_chi_squared_value(comma_separated_list):
+    '''
+    Returns the p-value for the specific tail of the chi-squared-value. Params: chi-squared-value, tail, degrees_of_freedom. Example input is: 2.4,left/right/two,99(n-1)
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    chi_squared, tail, degrees_of_freedom = map(str, comma_separated_list)
+    chi_squared = float(chi_squared)
+    degrees_of_freedom = float(degrees_of_freedom)
+    if (tail == "left"):
+        return stats.chi2.cdf(chi_squared, degrees_of_freedom)
+    elif (tail == "right"):
+        return 1 - stats.chi2.cdf(chi_squared, degrees_of_freedom)
+    elif (tail == "two"):
+        return 2 * (1 - stats.chi2.cdf(abs(chi_squared), degrees_of_freedom))
+    else:
+        return "Error: tail must be left, right or two"
+
+
 
 
 @tool
-def test_statistic_selection(comma_separated_list):
-    '''z-score or t-score. Selects the appropriate test statistic based on the number of samples. Params: size,sigma. Example input is: 100,1'''
-    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
-    n, s = map(float, comma_separated_list)
-    options = ['z-test', 't-test', 'proportions-z-test']
-    if s is None:
-        return options[1]
-    else:
-        if n > 30:
-            return options[0] + " or " + options[2]
+def test_statistic_selection(problem):
+    '''
+    Returns a test statistic for a specific problem. You should always provide the entire context and the problem
+    '''
+    llm = OpenAI(model_name="text-davinci-003")
+    prompt = f'''
+    Rules:
+    if proportions:
+        return proportions_z_score
+    if variation or standard deviation:
+        return chi_squared
+    if mean:
+        if n>30:
+            return z_score
         else:
-            return options[1]
+            return t_score
+    ---
+    Problem: {problem}
+    Test statistic:'''
+    response = llm(prompt.format(problem=problem))
+    return response
+
 
 @tool
 def required_sample_size(comma_separated_list):
@@ -145,6 +187,8 @@ def required_sample_size(comma_separated_list):
     return n
 
 
+
+
 def list_tools():
     return [
         calculate_beta,
@@ -154,6 +198,8 @@ def list_tools():
         tail_specific_t_value,
         proportions_z_score, # proportions testing
         tail_specific_proportions_z_value,
+        chi_squared_metric, # chi-squared testing
+        tail_specific_chi_squared_value,
         test_statistic_selection,
         load_dataset
             ]

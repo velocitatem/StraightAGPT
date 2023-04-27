@@ -128,15 +128,17 @@ def api_id():
     goals = request.json['goals']
     inall = template.format(problem=context, need_to_know=goals)
     response = agent({inall})
-    res = response['response']
-    return jsonify({'response': res})
+    print(response)
+    res = response['output']
+    return jsonify({'response': res, 'intermediate_steps': response['intermediate_steps']})
 
 # add route for the search notes method
 @app.route('/api/v1/search', methods=['POST'])
 def api_search():
     query = request.json['query']
     response = search_notes(query)
-    return jsonify({'response': response})
+    print(response)
+    return jsonify(response)
 
 
 
