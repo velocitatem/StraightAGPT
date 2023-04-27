@@ -89,7 +89,7 @@ ddg = DuckDuckGoSearchTool()
 from langchain.utilities import PythonREPL
 repl = PythonREPL()
 
-from toolkit import list_tools
+toolkit = __import__(mode)
 
 
 tools = [
@@ -98,7 +98,7 @@ tools = [
         description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
         func=repl.run
     ),
-    *list_tools() # extracts all the tools from the stats.py file and adds them to the list
+    *toolkit.list_tools() # extracts all the tools from the stats.py file and adds them to the list
 ]
 
 
