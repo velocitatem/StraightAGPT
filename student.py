@@ -45,11 +45,11 @@ for source in config['sources']:
 
 embeddings = OpenAIEmbeddings()
 
-docsearch = Chroma.from_documents(texts, embeddings)
+# docsearch = Chroma.from_documents(texts, embeddings)
 
-qa = RetrievalQA.from_chain_type(llm=OpenAI(),
-                                 chain_type="stuff",
-                                 retriever=docsearch.as_retriever())
+# qa = RetrievalQA.from_chain_type(llm=OpenAI(),
+#                                  chain_type="stuff",
+#                                  retriever=docsearch.as_retriever())
 
 def qa_from_filenames(filenames):
     base_loader = TextLoader('base.txt')
@@ -81,10 +81,8 @@ def qa_from_filenames(filenames):
                                      retriever=docsearch.as_retriever())
     return qa
 
-nextStepsQA = qa_from_filenames(['./next_steps.org'])
+#nextStepsQA = qa_from_filenames(['./next_steps.org'])
 
-def search_notes(query):
-    return qa.run(query)
 
 from langchain.tools import DuckDuckGoSearchTool
 ddg = DuckDuckGoSearchTool()
@@ -95,11 +93,6 @@ from toolkit import list_tools
 
 
 tools = [
-    Tool(
-        name="stats_qa",
-        description="Find extra information about statistical concepts.",
-        func=qa.run
-    ),
     Tool(
         name="python",
         description="Run python code in the REPL. Or execute some calculation. Do not search any information here.",
@@ -130,7 +123,10 @@ def api_id():
     response = agent({inall})
     print(response)
     res = response['output']
-    return jsonify({'response': res, 'intermediate_steps': response['intermediate_steps']})
+    try:
+        return jsonify({'response': res, 'intermediate_steps': response['intermediate_steps']})
+    except:
+        return jsonify({'response': res})
 
 # add route for the search notes method
 @app.route('/api/v1/search', methods=['POST'])

@@ -5,7 +5,7 @@ Problem to solve:
 Questions || goals:
 {need_to_know}
 ---
-Follow the following:
+# If doing a hypothesis test:
 start
 :State the null and alternative hypotheses - if unknown;
 :If given a dataset, understand the dataset;
@@ -23,4 +23,11 @@ if (p <= alpha) then (yes)
 else (no)
   :The result is not statistically significant;
 endif
+stop
+
+# If doing a confidence interval:
+start
+:Select the appropriate interval statistic using a tool;
+:Compute the interval using a tool;
+:Intepret the interval;
 stop

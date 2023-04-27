@@ -148,9 +148,6 @@ def tail_specific_chi_squared_value(comma_separated_list):
     else:
         return "Error: tail must be left, right or two"
 
-
-
-
 @tool
 def test_statistic_selection(problem):
     '''
@@ -186,8 +183,55 @@ def required_sample_size(comma_separated_list):
     n = (stats.norm.ppf(1 - alpha) + stats.norm.ppf(1 - beta)) ** 2 * s ** 2 / effect_size ** 2
     return n
 
+@tool
+def t_confidence_interval(comma_separated_list):
+    '''
+    Calculates the t confidence interval. Params: sample_mean,standard_deviation,n,alpha. Example input is: 158,1,100,0.05
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_mean, standard_deviation, n, alpha = map(float, comma_separated_list)
+    t = stats.t.ppf(1 - alpha / 2, n - 1)
+    lower_bound = sample_mean - t * standard_deviation / np.sqrt(n)
+    upper_bound = sample_mean + t * standard_deviation / np.sqrt(n)
+    return lower_bound, upper_bound
+
+@tool
+def z_confidence_interval(comma_separated_list):
+    '''
+    Calculates the z confidence interval. Params: sample_mean,standard_deviation,n,alpha. Example input is: 57,1,100,0.05
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_mean, standard_deviation, n, alpha = map(float, comma_separated_list)
+    z = stats.norm.ppf(1 - alpha / 2)
+    lower_bound = sample_mean - z * standard_deviation / np.sqrt(n)
+    upper_bound = sample_mean + z * standard_deviation / np.sqrt(n)
+    return lower_bound, upper_bound
+
+@tool
+def proportions_z_confidence_interval(comma_separated_list):
+    '''
+    Calculates the proportions z confidence interval. Params: sample_proportion,n,alpha. Example input is: 0.5,100,0.05
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_proportion, n, alpha = map(float, comma_separated_list)
+    z = stats.norm.ppf(alpha / 2)
+    lower_bound = sample_proportion - z * np.sqrt(sample_proportion * (1 - sample_proportion) / n)
+    upper_bound = sample_proportion + z * np.sqrt(sample_proportion * (1 - sample_proportion) / n)
+    return lower_bound, upper_bound
 
 
+
+@tool
+def select_confidence_interval(comma_separated_list):
+    '''
+    Selects the confidence interval based on the sample size. Params: n. Example input is: 100
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    n = float(comma_separated_list[0])
+    if n > 30:
+        return 'z_confidence_interval'
+    else:
+        return 't_confidence_interval'
 
 def list_tools():
     return [
@@ -201,5 +245,10 @@ def list_tools():
         chi_squared_metric, # chi-squared testing
         tail_specific_chi_squared_value,
         test_statistic_selection,
+        required_sample_size,
+        t_confidence_interval, # confidence intervals
+        z_confidence_interval,
+        proportions_z_confidence_interval,
+        select_confidence_interval,
         load_dataset
             ]
