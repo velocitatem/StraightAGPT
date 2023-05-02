@@ -7,32 +7,33 @@ from langchain.llms import OpenAI
 import pandas as pd
 import sys
 
-# tool to classify the problem based on given information
-# • size
-# • sd distro
-# • variance distro
-# • sample mean/prop/var/sd
-# • pop mean/prop/var/sd
-# • alpha
-# • beta
 @tool
 def classify_problem(comma_separated_list):
     '''
-    Classifies the problem based on given information. Params: sample_size,sample_sd_dist,sample_variance_dist,sample_mean,population_mean,sample_prop,population_prop,sample_sd,population_sd,alpha,beta. Not all will be know, if you dont have, just put None.
+    Classifies the problem based on given information. Params: sample_size,sample_sd,sample_variance,sample_mean,population_mean,sample_prop,population_prop,sample_sd,population_sd,alpha,beta,asks_for. The `asks_for` should be a guess at what the problem is asking for. Not all will be know, if you dont have, just put None. Example input is: 100,1,1,0.5,0,0.5,0,1,1,0.05,0.2,One Sample Proportion
     '''
     comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
-    sample_size, sample_sd_dist, sample_variance_dist, sample_mean, population_mean, sample_prop, population_prop, sample_sd, population_sd, alpha, beta = map(str, comma_separated_list)
+    var_names = ['sample_size', 'sample_sd_dist', 'sample_variance_dist', 'sample_mean', 'population_mean', 'sample_prop', 'population_prop', 'sample_sd', 'population_sd', 'alpha', 'beta', 'asks_for']
+    var_table = ''
     for i in range(len(comma_separated_list)):
-        if comma_separated_list[i] == "None":
-            comma_separated_list[i] = None
-        # check if is int or float
-        elif comma_separated_list[i].isdigit():
-            comma_separated_list[i] = int(comma_separated_list[i])
-        elif comma_separated_list[i].replace('.', '', 1).isdigit():
-            comma_separated_list[i] = float(comma_separated_list[i])
-    # TODO core pseudo code to classify problem
-    pseudocode = '''
+        # | name | value |
+        var_table += '| ' + var_names[i] + ' | ' + comma_separated_list[i] + ' |\n'
+    llm = OpenAI(model_name="text-davinci-003")
+    prompt = f'''
+    | Variable | Value |
+    {var_table}
+
+    You can only return one of these options: [ 'One Sample Proportion', 'One Sample Mean', 'One Sample Variance', 'One Sample Proportion (Hypothesis Testing)', 'One Sample Mean (Hypothesis Testing)', 'One Sample Variance (Hypothesis Testing)', 'Two Sample Proportion (Hypothesis Testing)', 'Two Sample Mean (Hypothesis Testing)', 'Two Sample Variance (Hypothesis Testing)']
+
+    You must select the appropriate statistic based on the provided inputs.
+    Return only the problem name.
+    Problem classification:
     '''
+
+    return llm(prompt)
+
+
+
 
 
 
@@ -357,6 +358,7 @@ def tail_specific_two_sample_proportions_z_value(comma_separated_list):
 
 def list_tools():
     return [
+        classify_problem,
         calculate_beta,
         z_score, # z testing
         tail_specific_z_value,
