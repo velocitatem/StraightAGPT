@@ -7,6 +7,38 @@ from langchain.llms import OpenAI
 import pandas as pd
 import sys
 
+# tool to classify the problem based on given information
+# • size
+# • sd distro
+# • variance distro
+# • sample mean/prop/var/sd
+# • pop mean/prop/var/sd
+# • alpha
+# • beta
+@tool
+def classify_problem(comma_separated_list):
+    '''
+    Classifies the problem based on given information. Params: sample_size,sample_sd_dist,sample_variance_dist,sample_mean,population_mean,sample_prop,population_prop,sample_sd,population_sd,alpha,beta. Not all will be know, if you dont have, just put None.
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_size, sample_sd_dist, sample_variance_dist, sample_mean, population_mean, sample_prop, population_prop, sample_sd, population_sd, alpha, beta = map(str, comma_separated_list)
+    for i in range(len(comma_separated_list)):
+        if comma_separated_list[i] == "None":
+            comma_separated_list[i] = None
+        # check if is int or float
+        elif comma_separated_list[i].isdigit():
+            comma_separated_list[i] = int(comma_separated_list[i])
+        elif comma_separated_list[i].replace('.', '', 1).isdigit():
+            comma_separated_list[i] = float(comma_separated_list[i])
+    # TODO core pseudo code to classify problem
+    pseudocode = '''
+    '''
+
+
+
+
+
+
 
 @tool
 def calculate_beta(comma_separated_list):
@@ -293,8 +325,32 @@ def tail_specific_two_sample_t_value(comma_separated_list):
         raise ValueError('side must be left, right or two')
 
 
+@tool
+def two_sample_proportions_z_score(comma_separated_list):
+    '''
+    Calculates the two sample proportions z score. Params: sample_proportion_1,sample_proportion_2,n_1,n_2. Example input is: 0.5,0.6,100,100
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    sample_proportion_1, sample_proportion_2, n_1, n_2 = map(float, comma_separated_list)
+    return (sample_proportion_1 - sample_proportion_2) / np.sqrt(sample_proportion_1 * (1 - sample_proportion_1) / n_1 + sample_proportion_2 * (1 - sample_proportion_2) / n_2)
 
-
+@tool
+def tail_specific_two_sample_proportions_z_value(comma_separated_list):
+    '''
+    Calculates the tail specific two sample proportions z-test p-value. Params: z_score,alpha,side. Example input is: 1.5,0.05,left/right/two
+    '''
+    comma_separated_list = [x.strip() for x in comma_separated_list.split(',')]
+    z_score, alpha, side = map(str, comma_separated_list)
+    side = side.lower().strip()
+    z_score, alpha = map(float, [z_score, alpha])
+    if side == 'left':
+        return stats.norm.cdf(z_score)
+    elif side == 'right':
+        return 1 - stats.norm.cdf(z_score)
+    elif side == 'two':
+        return 2 * (1 - stats.norm.cdf(z_score))
+    else:
+        raise ValueError('side must be left, right or two')
 
 
 
@@ -320,22 +376,7 @@ def list_tools():
         select_confidence_interval,
         two_sample_t_score, # two sample t testing
         tail_specific_two_sample_t_value,
+        two_sample_proportions_z_score, # two sample proportions testing
+        tail_specific_two_sample_proportions_z_value,
         load_dataset
             ]
-
-import argparse
-def list_tools_print():
-    for tool in list_tools():
-        print(f"\n\n{tool.name}")
-        print(f"\t{tool.description}")
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run a statistical tool')
-    parser.add_argument('--tool', type=str, help='the name of the tool to run')
-    parser.add_argument('--args', type=str, help='comma separated list of arguments to pass to the tool')
-    parser.add_argument('--list', action='store_true', help='list all available tools')
-    args = parser.parse_args()
-    if args.list:
-        list_tools_print()
-    else:
-        tool = next(filter(lambda x: x.name == args.tool, list_tools()))
-        print(tool(args.args))

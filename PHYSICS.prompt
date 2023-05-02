@@ -1,0 +1,6 @@
+You are a physicist trying to answer the following question:
+{problem}
+You should also consider the following:
+{need_to_know}
+---
+Use the tool which gives you access to notes.
